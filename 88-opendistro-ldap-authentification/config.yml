@@ -1,0 +1,37 @@
+....
+
+      ldap:
+        description: "Authenticate via LDAP or Active Directory"
+        http_enabled: true
+        transport_enabled: true
+        order: 5
+        http_authenticator:
+          type: basic
+          challenge: false
+        authentication_backend:
+          # LDAP authentication backend (authenticate users against a LDAP or Active Directory)
+          type: ldap
+          config:
+            # enable ldaps
+            enable_ssl: false
+            # enable start tls, enable_ssl should be false
+            enable_start_tls: false
+            # send client certificate
+            enable_ssl_client_auth: false
+            # verify ldap hostname
+            verify_hostnames: false
+            hosts:
+            - ldap.example.com:389
+            bind_dn: "CN=admin,DC=example,DC=com"
+            password: "password"
+            userbase: 'DC=example,DC=com'
+            # Filter to search for users (currently in the whole subtree beneath userbase)
+            # {0} is substituted with the username
+            usersearch: '(uid={0})'
+            # Use this attribute from the user as username (if not set then DN is used)
+            username_attribute: "uid"
+            skip_users:
+             - kibanaserver
+
+
+....

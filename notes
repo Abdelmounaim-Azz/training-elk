@@ -1,0 +1,50 @@
+
+
+/usr/share/elasticsearch/plugins/opendistro_security/tools/securityadmin.sh -icl -nhnv -cacert /etc/elasticsearch/root-ca.pem -cert /etc/elasticsearch/kirk.pem -key /etc/elasticsearch/kirk-key.pem -t config -f /usr/share/elasticsearch/plugins/opendistro_security/securityconfig/config.yml
+
+      ldap:
+        description: "Authenticate via LDAP or Active Directory"
+        http_enabled: false
+        transport_enabled: false
+        order: 5
+        http_authenticator:
+          type: basic
+          challenge: false
+        authentication_backend:
+          # LDAP authentication backend (authenticate users against a LDAP or Active Directory)
+          type: ldap
+          config:
+            # enable ldaps
+            enable_ssl: false
+            # enable start tls, enable_ssl should be false
+            enable_start_tls: false
+            # send client certificate
+            enable_ssl_client_auth: false
+            # verify ldap hostname
+            verify_hostnames: true
+            hosts:
+            - ldap.example.com:389
+            bind_dn: "CN=admin,DC=example,DC=com"
+            password: "password"
+            userbase: 'OU=people,DC=example,DC=com'
+            # Filter to search for users (currently in the whole subtree beneath userbase)
+            # {0} is substituted with the username
+            usersearch: '(sAMAccountName={0})'
+            # Use this attribute from the user as username (if not set then DN is used)
+            username_attribute: "uid"
+
+
+* change password
+ldappasswd -H ldapi:/// -x -D "cn=admin,dc=example,dc=com" -W -S uid=alice,dc=example,dc=com
+
+* test password
+ldapwhoami -vvv -h 192.168.20.124 -p 389 -D 'cn=alice,ou=people,dc=example,dc=com' -x -W
+
+* arbre full
+ldapsearch -x -LLL -H ldap://192.168.20.124 -b 'dc=example,dc=com'  dn | grep -v '^$'
+
+* delete user
+ldapdelete -v -D "cn=admin,dc=example,dc=com" -W "uid=xavki,ou=people,dc=example,dc=com" 
+
+
+curl https://127.0.0.1:9200/_opendistro/_security/authinfo?pretty --insecure -u alice:password
